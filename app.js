@@ -1,10 +1,10 @@
-var express = require('express');
-var path = require('path');
+const express = require('express');
+const path = require('path');
 
 // var favicon = require('serve-favicon');
-var logger = require('morgan');
+const logger = require('morgan');
 // var cookieParser = require('cookie-parser');
-// var bodyParser = require('body-parser');
+var bodyParser = require('body-parser');
 
 const keys = require('./config/keys');
 const mongoose = require('mongoose');
@@ -13,9 +13,11 @@ const passport = require('./services/passport');
 mongoose.connect(keys.mongoURI);
 
 const cookieSession = require('cookie-session');
+const partials = require('express-partials');
+const flash = require('connect-flash');
 
 const index = require('./routes/index');
-const users = require('./routes/users');
+const user = require('./routes/user');
 const auth = require('./routes/auth');
 const api = require('./routes/api');
 
@@ -32,19 +34,35 @@ app.use(passport.session());
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.use(partials());
 
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 app.use(logger('dev'));
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 // app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(flash());
+
+app.use(function(req, res, next){
+    console.log("app.usr local");
+    console.log(req.session);
+    const passport = req.session.passport;
+    res.locals.user = passport && passport.user || null;
+    res.locals.post = req.session.post;
+    const error = req.flash('error');
+    res.locals.error = error.length ? error : null;
+
+    const success = req.flash('success');
+    res.locals.success = success.length ? success : null;
+    next();
+});
 
 app.use('/', index);
-app.use('/users', users);
+app.use('/user', user);
 app.use('/auth', auth);
-app.use('/api', api);
+// app.use('/api', api);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -1,6 +1,7 @@
 'use strict';
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20');
+const LocalStrategy = require('passport-local');
 const mongoose = require('mongoose');
 const User = mongoose.model('users');
 const keys = require('../config/keys');
@@ -16,8 +17,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 passport.use(
-    new GoogleStrategy(
-        {
+    new GoogleStrategy({
             clientID: keys.googleClientID,
             clientSecret: keys.googleClientSecret,
             callbackURL: '/auth/google/callback'
@@ -32,5 +32,19 @@ passport.use(
             }
         })
 );
+
+passport.use(new LocalStrategy(
+    async (username, password, done) => {
+        const user = await User.findOne({username});
+        if (!user) {
+            return done(null, false, {message: 'Incorrect username'});
+        }
+        if (user.password !== password) {
+            return done(null, false, {message: 'Incorrect password.'});
+        }
+        return done(null, user);
+
+    }
+));
 
 module.exports = passport;

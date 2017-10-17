@@ -9,9 +9,12 @@ router.get('/google', passport.authenticate('google', {
 
 router.get(
     '/google/callback',
-    passport.authenticate('google'),
+    passport.authenticate('google', {
+        failureFlash: true,
+        successFlash: '登录成功！'
+    }),
     (req, res) => {
-        res.redirect('/api/current_user');
+        res.redirect('/');
     }
 );
 
