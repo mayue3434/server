@@ -23,5 +23,8 @@
     "passport-local": "^1.0.0",
     "redux-thunk": "^2.2.0",
     "serve-favicon": "~2.4.2"
+  },
+  "engines": {
+    "node": "8.7.0"
   }
 }
